@@ -13,7 +13,7 @@
 #   BYLINE  e.g. "By David Brooks"                           (empty to omit)
 #   DATE    e.g. "July 8, 2026"                              (empty to omit)
 #   ACCENT  hex accent for a DARK surface (default gold); a light surface uses crimson
-#   STYLE   floating (default) | matted
+#   STYLE   floating (default) | matted | both (writes card-floating.png + card-matted.png)
 #   FORMAT  portrait 1080x1350 (default) | square 1080x1080 | landscape 1200x630
 #   SERIF/SANS/SIT  font-file paths (override the auto-detected defaults)
 # Files in cwd: hero.jpg (required), logo.png (the favicon, always shown if present)
@@ -76,7 +76,11 @@ masthead(){ # $1 name-color  $2 out-file
   else cp "$T/_o.png" "$2"; fi
 }
 
-if [ "$STYLE" = "matted" ]; then
+if [ "$STYLE" = "both" ]; then STYLES=(floating matted); else STYLES=("$STYLE"); fi
+for S in "${STYLES[@]}"; do
+OUTFILE="card.png"; [ "${#STYLES[@]}" -gt 1 ] && OUTFILE="card-${S}.png"
+
+if [ "$S" = "matted" ]; then
   # mat tone follows the image tone so the framed print sits on a matching field
   palette "$DARKIMG"
   MAT=$([ "$DARKIMG" = 1 ] && echo "$INK" || echo "$PAPER")
@@ -114,7 +118,7 @@ if [ "$STYLE" = "matted" ]; then
   magick "$T/base.png" \
     "$T/out.png"   -gravity north     -geometry +0+${MAST_TOP} -composite \
     "$T/photo.png" -gravity north     -geometry +0+${PHOTO_TOP} -composite \
-    "$T/stk.png"   -gravity southwest -geometry +${MARGIN}+${PAD_BOTTOM} -composite card.png
+    "$T/stk.png"   -gravity southwest -geometry +${MARGIN}+${PAD_BOTTOM} -composite "$OUTFILE"
 
 else
   # floating: card over the full image. Surface is the OPPOSITE tone of the image so it
@@ -145,6 +149,7 @@ else
   magick "$T/pn.png" \( +clone -background black -shadow 70x24+0+12 \) +swap \
     -background none -layers merge +repage "$T/pns.png"
   magick "$T/pns.png" "$T/ct.png" -gravity center -composite "$T/pnf.png"
-  magick "$T/base.png" "$T/pnf.png" -gravity center -composite card.png
+  magick "$T/base.png" "$T/pnf.png" -gravity center -composite "$OUTFILE"
 fi
-echo "wrote card.png ($STYLE, $FORMAT, $([ "$DARKIMG" = 1 ] && echo dark || echo light) image)"
+echo "wrote $OUTFILE ($S, $FORMAT, $([ "$DARKIMG" = 1 ] && echo dark || echo light) image)"
+done

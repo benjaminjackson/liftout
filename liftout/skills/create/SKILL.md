@@ -78,12 +78,15 @@ without a style guide, type falls back to clean system faces.
    curl -sL -A "Mozilla/5.0" "<logo url>" -o logo.png   # skip if none
    ```
 
-4. **Compose.** Run the recipe with your values. Pick a style (ask or default to
-   `floating`) and a format (default `portrait`):
+4. **Compose.** Run the recipe with your values, generating both styles at once
+   so the user can pick (default), and a format (default `portrait`):
    ```bash
    QUOTE="“…”" OUTLET="…" TITLE="…" BYLINE="By …" DATE="July 8, 2026" \
-   ACCENT="#e3b23c" STYLE=floating FORMAT=portrait bash compose.sh
+   ACCENT="#e3b23c" STYLE=both FORMAT=portrait bash compose.sh
    ```
+   This writes `card-floating.png` and `card-matted.png`. Show both and ask which
+   one to keep. If the user already said which style they want, pass `STYLE=floating`
+   or `STYLE=matted` instead and it writes a single `card.png`.
    - `STYLE=floating` — card centered over the full-brightness image, quote inside it
      (immersive). Date rides up top as a kicker; title sits under the quote.
    - `STYLE=matted` — gallery mat, the image inset as a framed print, quote below
@@ -99,7 +102,8 @@ without a style guide, type falls back to clean system faces.
    - `TITLE`, `BYLINE`, `DATE` are all optional — omit any and the layout closes up.
    - Wrap the quote in curly quotes `“ ”` yourself.
 
-5. **Look at `card.png` and fix it.** Open it, read it back. Check:
+5. **Look at the output(s) and fix them.** Open `card-floating.png`/`card-matted.png`
+   (or `card.png` if only one style was requested), read them back. Check:
    - Quote is the loudest thing and fully on-frame (not clipped).
    - Every line legible: for `floating`, if a busy image bleeds through, raise the panel
      opacity (`rgba(20,16,11,0.86)` → higher); for `matted`, check the quote fills the
