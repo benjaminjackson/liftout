@@ -2,6 +2,8 @@
 
 A Claude Code plugin that turns an **article URL** into a polished, editorial **share card**: the piece's own hero image, the single sharpest quote pulled from the body set as the dominant element, and colors that adapt to the image. It renders live with ImageMagick and looks at the result before handing it over, instead of stamping content into a fixed template.
 
+<img src="docs/images/example-floating.png" alt="Example share card in the floating style" width="480">
+
 ## Installation
 
 ```
