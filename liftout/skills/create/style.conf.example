@@ -10,7 +10,7 @@
 # SIT="/path/to/your-serif-italic.otf"      # byline
 
 # Accent colors (hex). By default these are derived per-image from the hero photo's
-# own dominant hue — uncomment any of these to pin a fixed brand color instead.
+# own dominant hue. Uncomment any of these to pin a fixed brand color instead.
 # ACCENT="#e3b23c"     # accent on dark surfaces (bar, date kicker)
 # CRIMSON="#a62b1f"    # accent on light surfaces
 # INK="#17130e"        # the dark surface/text tone

@@ -31,10 +31,10 @@ why this is **Liftout**, the newsroom term for a lift-out quote.
    clipped byline or text lost against a busy image. An agent looking at the
    output can. This is the core of why it is a skill and not a one-shot program.
 4. **Colors come from the image and contrast it.** Surfaces and accents are tinted
-   from the hero's own dominant hue (grayscale photos fall back to neutral ink/gold),
-   and the script measures the hero's mean luminance to flip surface and text so they
-   always read: light image gets a dark surface with light text, dark image gets
-   the reverse.
+   from the hero's own dominant hue (grayscale photos fall back to the fixed
+   ink/paper/gold/crimson), and the script measures the hero's mean luminance to
+   flip surface and text so they always read: light image gets a dark surface with
+   light text, dark image gets the reverse.
 
 ## Pipeline
 
@@ -64,13 +64,23 @@ why this is **Liftout**, the newsroom term for a lift-out quote.
 
 ## Adaptive color
 
-`INK`/`PAPER`/`ACCENT`/`CRIMSON` aren't fixed anymore — they're derived per-image.
-`compose.sh` quantizes the hero to a handful of swatches (`-colors 8 +dither
-histogram:info:`), throws out near-gray/black/white ones, and picks whichever
-remaining swatch is most saturated *and* populous (`score = count * saturation`).
-That swatch's hue gets re-lit into a dark surface, a pale surface, and two accent
-weights (`hsl2hex`), overwriting the neutrals. A grayscale/monochrome photo has no
-qualifying swatch, so it falls straight back to the original ink/paper/gold/crimson.
+`INK`, `PAPER`, `ACCENT`, and `CRIMSON` aren't fixed. `compose.sh` derives them from
+the hero image before anything else in the palette runs: quantize to a handful of
+swatches, throw out the near-gray/black/white ones, and score what's left by
+population times saturation.
+
+```bash
+HIST=$(magick hero.jpg -resize 100x100 -colors 8 +dither -format '%c' histogram:info:)
+# score = count * saturation; skip swatches with s<0.15, l<0.12, or l>0.88
+```
+
+The winning swatch's hue gets re-lit (`hsl2hex`) into a dark surface (`INK`), a pale
+surface (`PAPER`), and two accent weights (`ACCENT`, `CRIMSON`). A grayscale photo has
+no swatch that clears the saturation and lightness filters, so all four fall back to
+the fixed defaults: `#17130E`, `#F1ECE0`, `#e3b23c`, `#A62B1F`.
+
+Once the palette is set, the same brightness check as before decides where light and
+dark land:
 
 ```bash
 MEAN=$(magick hero.jpg -colorspace Gray -format "%[fx:mean]" info:)
@@ -79,11 +89,12 @@ DARKIMG=$(awk -v m="$MEAN" 'BEGIN{print (m<0.5)?1:0}')
 palette(){ if [ "$1" = 1 ]; then TX="$PAPER"; ACC="$ACCENT"; else TX="$INK"; ACC="$CRIMSON"; fi; }
 ```
 
-- **matted**: the mat tone *matches* the image tone (light image gets a pale mat and ink text).
-- **floating**: the card is the *opposite* tone of the image so it pops (light image gets a
+- **matted**: the mat tone matches the image tone (light image gets a pale mat and ink text).
+- **floating**: the card is the opposite tone of the image so it pops (light image gets a
   dark card and light text).
-- Style guide (`~/.config/liftout/style.conf`) and per-call env vars still override the
-  derived colors, same precedence as before — derivation only fills in when neither is set.
+- The style guide (`~/.config/liftout/style.conf`) and per-call env vars override the
+  derived colors at the same precedence as fonts: derivation only fills in when neither
+  is set.
 
 ## Type
 

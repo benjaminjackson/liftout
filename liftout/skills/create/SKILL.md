@@ -97,9 +97,9 @@ without a style guide, type falls back to clean system faces.
      (1200×630). Floating handles all three; matted is best in portrait/square —
      landscape gets tight, so prefer floating there.
    - **Colors adapt to the image**: surfaces and accents are tinted from the hero photo's
-     own dominant color (falls back to neutral ink/gold for grayscale photos), and the
-     script still reads brightness to flip surface + text so they always contrast — a
-     light image gets a dark surface with light text, a dark image the reverse. Set
+     own dominant color (grayscale photos fall back to the fixed ink/paper/gold/crimson).
+     The script also reads brightness to flip surface and text so they always contrast:
+     a light image gets a dark surface with light text, a dark image the reverse. Set
      `ACCENT`/`CRIMSON`/`INK`/`PAPER` (or the style guide) to override with a fixed color.
    - The favicon (`logo.png`) always leads the outlet name in both styles — so download it.
    - `TITLE`, `BYLINE`, `DATE` are all optional — omit any and the layout closes up.
