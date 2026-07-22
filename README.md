@@ -15,8 +15,6 @@ Requires **ImageMagick 7** (`magick`) and **awk**. No fonts are bundled: type fa
 
 Paste a link. The skill scrapes the article, pulls the quote most worth sharing, and composes a card built around it, in one of two styles, at the aspect ratio you want.
 
-The reason this is a skill and not a one-shot script: every article is different. A six-word pull-quote and a sixty-word one need different type sizes; a busy light image and a moody dark one need opposite color treatments. So liftout composes each card live and then reads the render back to fix what a blind script would miss.
-
 ### How it works
 
 Five steps, and the last one is the point.
@@ -36,8 +34,6 @@ Five steps, and the last one is the point.
 - **floating**: an opaque, rounded card with a soft drop shadow, centered over the full-brightness image, with the quote inside it. Immersive, you are *in* the image. The date rides on top as a small accent kicker, the title sits under the quote.
 - **matted**: a gallery mat whose tone matches the image, with the hero inset as a small framed print and the quote below it, sized to fill the space. Reverent, the image becomes an artifact on a page. The date joins the byline.
 
-They were curated down from a ten-treatment exploration (magazine cover, duotone, split-screen, newsprint halftone, and others). These two won because they give the quote a clean surface to read against while keeping the image intact. The others either fought the artwork or threw it away.
-
 ### Colors adapt to the image
 
 The script measures the hero's brightness and flips the surface and text so they always contrast. A light image gets a dark surface with light text; a dark image gets the reverse. The accent goes gold on a dark surface, crimson on a light one. The favicon always leads the outlet name, in both styles.
@@ -53,7 +49,7 @@ Portrait `1080x1350` (default, the Instagram 4:5 size), square `1080x1080`, or l
 
 It asks which style if you don't say, defaults to portrait, and pulls the quote itself unless you hand it one.
 
-See [`docs/SPEC.md`](docs/SPEC.md) for the full design, the ImageMagick recipe, and the reference example the skill was built against.
+See [`docs/SPEC.md`](docs/SPEC.md) for the full design and the ImageMagick recipe.
 
 ## Author
 
