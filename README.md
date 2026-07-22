@@ -48,7 +48,7 @@ Portrait `1080x1350` (default, the Instagram 4:5 size), square `1080x1080`, or l
 
 ### Usage
 
-- **Explicitly:** `/liftout <article-url>`
+- **Explicitly:** `/liftout:create <article-url> [portrait|square|landscape]`
 - **Automatically:** on phrases like "make a share card from this," "turn this article into a quote card," or "social graphic for this link."
 
 It asks which style if you don't say, defaults to portrait, and pulls the quote itself unless you hand it one.

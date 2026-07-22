@@ -1,18 +1,36 @@
 ---
-name: liftout
-description: Turn an article URL into a polished, editorial share card — the article's own hero image, a pulled quote as the dominant element, plus title, byline, outlet name and favicon. Use when the user pastes an article link and wants a share graphic, quote card, or social card. Trigger on "share card", "quote card", "liftout", "make a card from this article", "social graphic for this link".
+name: create
+description: >-
+  Turn an article URL into a polished, editorial share card: the article's own
+  hero image, a pulled quote as the dominant element, plus title, byline, outlet
+  name and favicon. Use when the user pastes an article link and wants a share
+  graphic, quote card, or social card. Invoke explicitly as
+  `/liftout:create <url> [aspect-ratio]`, where aspect-ratio is portrait
+  (default), square, or landscape. Trigger on "share card", "quote card",
+  "liftout", "make a card from this article", "social graphic for this link".
+argument-hint: "<url> [portrait|square|landscape]"
+arguments: [url, aspect_ratio]
 ---
 
 # Liftout
 
-Compose a share card from an article URL — **live, per article**. Every piece
+Compose a share card from an article URL, **live, per article**. Every piece
 differs (a 6-word pull-quote and a 60-word one need completely different type
 sizes), so this is not template substitution: you scrape the article, pick the
 quote, run the ImageMagick recipe, **look at the result, and tweak until it's
 right.** Looking at the render and fixing it is the job, not an optional step.
 
 `compose.sh` (next to this file) is a proven starting recipe. Run it from the
-skill directory — it reads `hero.jpg`/`logo.png` and writes `card.png` there.
+skill directory; it reads `hero.jpg`/`logo.png` and writes `card.png` there.
+
+## Arguments
+
+When invoked explicitly (`/liftout:create <url> [aspect-ratio]`), the article URL
+is `$url` and the optional aspect ratio is `$aspect_ratio`. Map the aspect ratio to
+`FORMAT`: `portrait` (default, also 4:5), `square` (1:1), or `landscape` (1.91:1,
+16:9, OG/Twitter). If `$aspect_ratio` is empty, default to portrait. When triggered
+from conversation instead of an explicit call, read the URL and any aspect-ratio
+preference from what the user said.
 
 ## First run: offer a style guide
 
