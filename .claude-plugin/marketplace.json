@@ -1,0 +1,18 @@
+{
+  "name": "liftout",
+  "owner": {
+    "name": "Benjamin Jackson",
+    "email": "ben@benjaminjackson.co"
+  },
+  "metadata": {
+    "description": "Turn an article URL into a polished, editorial share card: the piece's own hero image, the sharpest pulled quote as the dominant element, and colors that adapt to the image — rendered live with ImageMagick, not stamped from a template.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "liftout",
+      "description": "Turn an article URL into a share card. Scrapes the piece's OpenGraph metadata and hero image, pulls the single most shareable quote, and composes it as an editorial card in one of two styles (floating card over the image, or a matted gallery print). Colors adapt to the image's brightness; the favicon leads the outlet name; portrait, square, and landscape formats.",
+      "source": "./liftout"
+    }
+  ]
+}

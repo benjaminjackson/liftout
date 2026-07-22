@@ -1,0 +1,6 @@
+.DS_Store
+
+# runtime artifacts (downloaded/rendered per run)
+hero.jpg
+logo.png
+card.png

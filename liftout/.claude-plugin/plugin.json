@@ -1,0 +1,8 @@
+{
+  "name": "liftout",
+  "description": "Turn an article URL into a share card. Scrapes the piece's OpenGraph metadata and hero image, pulls the single most shareable quote, and composes it as an editorial card in one of two styles (floating card over the image, or a matted gallery print). Colors adapt to the image's brightness; the favicon leads the outlet name; portrait, square, and landscape formats.",
+  "author": {
+    "name": "Benjamin Jackson",
+    "email": "ben@benjaminjackson.co"
+  }
+}
