@@ -72,10 +72,12 @@ without a style guide, type falls back to clean system faces.
    in the piece*. Keep the author's words; trim only lightly. If the user hands you
    a quote, use theirs verbatim.
 
-3. **Download the images** (local files render reliably):
+3. **Download the images** (local files render reliably). `hero.jpg`/`logo.png` are
+   reused from the *previous* article if you skip this — always clear them first:
    ```bash
+   rm -f hero.jpg logo.png card.png card-floating.png card-matted.png
    curl -sL -A "Mozilla/5.0" "<og:image>" -o hero.jpg
-   curl -sL -A "Mozilla/5.0" "<logo url>" -o logo.png   # skip if none
+   curl -sL -A "Mozilla/5.0" "<logo url>" -o logo.png   # skip if none — leave it deleted
    ```
 
 4. **Compose.** Run the recipe with your values, generating both styles at once
