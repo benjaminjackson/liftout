@@ -3,8 +3,10 @@
 # Two styles, user's pick:
 #   STYLE=floating  → card centered over the full image, quote inside (default)
 #   STYLE=matted    → gallery mat, image inset as a framed print, quote below
-# Colors adapt to the hero image's brightness: a light image gets a dark surface with
-# light text (and vice versa), so the text and overlay always contrast the background.
+# Colors adapt to the hero image: surfaces and accents are tinted from the image's own
+# dominant hue, and light/dark placement still follows brightness (a light image gets a
+# dark surface with light text and vice versa), so the card always contrasts and always
+# feels like it belongs to the photo.
 #
 # Inputs (env vars):
 #   QUOTE   the pulled quote (include curly “ ” yourself)   [required]
@@ -56,6 +58,41 @@ SIT=$(pickfont \
   "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf" \
   "/usr/share/fonts/truetype/liberation/LiberationSerif-Italic.ttf" "Georgia-Italic")
 ACCENT="#e3b23c"; INK="#17130E"; PAPER="#F1ECE0"; CRIMSON="#A62B1F"
+
+# derive surface + accent colors from the hero image's own dominant hue, so the card's
+# palette is tied to the photo instead of always landing on flat ink/paper. Quantizes
+# the image to a few swatches, picks the most saturated populous one (skipping
+# near-gray/black/white swatches), then re-lights that hue into a dark surface, a pale
+# surface, and two accent weights. Falls back to the neutrals above for grayscale/
+# monochrome photos where there's no real hue to pull from.
+hsl2hex(){ awk -v h="$1" -v s="$2" -v l="$3" 'function hue2rgb(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p}
+  BEGIN{H=h/360; if(s==0){r=g=b=l}else{q=(l<0.5)?l*(1+s):l+s-l*s; p=2*l-q; r=hue2rgb(p,q,H+1/3); g=hue2rgb(p,q,H); b=hue2rgb(p,q,H-1/3)}
+  printf "#%02X%02X%02X", r*255, g*255, b*255}'; }
+HIST=$(magick hero.jpg -resize 100x100 -colors 8 +dither -format '%c' histogram:info: 2>/dev/null || true)
+HUE=""; SAT=""
+if [ -n "$HIST" ]; then
+  read -r HUE SAT < <(echo "$HIST" | awk -F'[:()]' '
+    {
+      cnt=$1+0; n=split($3,rgb,","); if (n<3) next
+      r=rgb[1]/255; g=rgb[2]/255; b=rgb[3]/255
+      mx=(r>g?(r>b?r:b):(g>b?g:b)); mn=(r<g?(r<b?r:b):(g<b?g:b)); d=mx-mn
+      l=(mx+mn)/2
+      s=(d==0)?0:d/(1-((2*l-1)<0?-(2*l-1):(2*l-1)))
+      if (s<0.15 || l<0.12 || l>0.88) next          # skip near-gray/black/white swatches
+      if (mx==r) h=60*(((g-b)/d)%6); else if (mx==g) h=60*((b-r)/d+2); else h=60*((r-g)/d+4)
+      if (h<0) h+=360
+      score=cnt*s                                    # favor populous AND saturated
+      if (score>best){best=score; bh=h; bs=s}
+    }
+    END{ if (best>0) printf "%.1f %.3f", bh, bs }') || true
+fi
+if [ -n "$HUE" ]; then
+  CSAT=$(awk -v s="$SAT" 'BEGIN{v=s; if(v<0.35)v=0.35; if(v>0.7)v=0.7; print v}')
+  INK=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{print s*0.7}')" 0.13)
+  PAPER=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{print s*0.35}')" 0.95)
+  ACCENT=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.62)
+  CRIMSON=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.38)
+fi
 [ -f "$STYLE_CONF" ] && . "$STYLE_CONF"                  # durable style guide overrides
 [ -n "$_ACCENT" ] && ACCENT="$_ACCENT"                   # then per-call env wins
 [ -n "$_SERIF" ] && SERIF="$_SERIF"; [ -n "$_SANS" ] && SANS="$_SANS"; [ -n "$_SIT" ] && SIT="$_SIT"

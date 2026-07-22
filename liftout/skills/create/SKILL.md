@@ -96,10 +96,11 @@ without a style guide, type falls back to clean system faces.
    - `FORMAT=portrait` (1080×1350, default) · `square` (1080×1080) · `landscape`
      (1200×630). Floating handles all three; matted is best in portrait/square —
      landscape gets tight, so prefer floating there.
-   - **Colors adapt to the image**: the script reads the hero's brightness and flips the
-     surface + text so they always contrast — a light image gets a dark surface with
-     light text, a dark image the reverse. `ACCENT` is the accent for a dark surface
-     (gold); light surfaces use crimson automatically.
+   - **Colors adapt to the image**: surfaces and accents are tinted from the hero photo's
+     own dominant color (falls back to neutral ink/gold for grayscale photos), and the
+     script still reads brightness to flip surface + text so they always contrast — a
+     light image gets a dark surface with light text, a dark image the reverse. Set
+     `ACCENT`/`CRIMSON`/`INK`/`PAPER` (or the style guide) to override with a fixed color.
    - The favicon (`logo.png`) always leads the outlet name in both styles — so download it.
    - `TITLE`, `BYLINE`, `DATE` are all optional — omit any and the layout closes up.
    - Wrap the quote in curly quotes `“ ”` yourself.

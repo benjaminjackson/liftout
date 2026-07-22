@@ -38,7 +38,7 @@ Five steps, and the last one is the point.
 
 ### Colors adapt to the image
 
-The script measures the hero's brightness and flips the surface and text so they always contrast. A light image gets a dark surface with light text; a dark image gets the reverse. The accent goes gold on a dark surface, crimson on a light one. The favicon always leads the outlet name, in both styles.
+The card's surfaces and accents are tinted from the hero image's own dominant color — no flat black or cream defaults, the palette comes from the photo (grayscale photos fall back to a neutral ink/gold). The script also measures the hero's brightness and flips the surface and text so they always contrast: a light image gets a dark surface with light text; a dark image gets the reverse. The favicon always leads the outlet name, in both styles.
 
 ### Formats
 
