@@ -3,7 +3,8 @@
 # accent colors. Anything you leave commented keeps the skill's system-font default.
 # compose.sh sources this file automatically. Per-call env vars still win over it.
 
-# Fonts (absolute paths to font files)
+# Fonts (absolute paths to font files — Claude resolves these from a font name
+# or website you give it; you shouldn't need to type a path here yourself)
 # SERIF="/path/to/your-serif-bold.otf"      # the quote (the hero face)
 # SANS="/path/to/your-sans-bold.otf"        # outlet + title
 # SIT="/path/to/your-serif-italic.otf"      # byline

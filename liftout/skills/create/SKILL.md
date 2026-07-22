@@ -39,8 +39,13 @@ Before composing the first card, check whether a style guide exists at
 once (AskUserQuestion) whether they'd like to set their own brand fonts and accent
 colors, or use the defaults. Write the file either way, so this isn't asked again:
 
-- **Customize:** write their font-file paths and hex colors, using
-  `style.conf.example` (next to this file) as the template.
+- **Customize:** ask for the font *names* (or a link to the brand's website/style
+  guide) and hex colors — not file paths. Then find the actual `.otf`/`.ttf` files
+  on their machine (e.g. `find ~/Library/Fonts /Library/Fonts -iname "*<name>*"`,
+  or check a project's asset folder if they point you at one) and write those
+  resolved absolute paths into the config, using `style.conf.example` (next to
+  this file) as the template. If a named font can't be found locally, say so and
+  fall back to defaults for that slot rather than guessing a path.
 - **Use defaults:** copy `style.conf.example` to the config path (everything
   commented out), so it exists and they can edit it later.
 
