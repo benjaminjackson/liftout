@@ -15,6 +15,8 @@
 #   BYLINE  e.g. "By David Brooks"                           (empty to omit)
 #   DATE    e.g. "July 8, 2026"                              (empty to omit)
 #   ACCENT  hex accent for a DARK surface (default gold); a light surface uses crimson
+#   CRIMSON hex accent for a LIGHT surface
+#   INK/PAPER  the dark and light surface/text tones
 #   STYLE   floating (default) | matted | both (writes card-floating.png + card-matted.png)
 #   FORMAT  portrait 1080x1350 (default) | square 1080x1080 | landscape 1200x630
 #   SERIF/SANS/SIT  font-file paths (override the auto-detected defaults)
@@ -29,7 +31,8 @@ QUOTE="${QUOTE:?set QUOTE}"; OUTLET="${OUTLET:?set OUTLET}"
 TITLE="${TITLE:-}"; BYLINE="${BYLINE:-}"; DATE="${DATE:-}"
 STYLE="${STYLE:-floating}"; FORMAT="${FORMAT:-portrait}"
 # capture per-call style overrides so they beat the style guide + defaults
-_ACCENT="${ACCENT:-}"; _SERIF="${SERIF:-}"; _SANS="${SANS:-}"; _SIT="${SIT:-}"
+_ACCENT="${ACCENT:-}"; _CRIMSON="${CRIMSON:-}"; _INK="${INK:-}"; _PAPER="${PAPER:-}"
+_SERIF="${SERIF:-}"; _SANS="${SANS:-}"; _SIT="${SIT:-}"
 STYLE_CONF="${LIFTOUT_STYLE:-$HOME/.config/liftout/style.conf}"
 case "$FORMAT" in
   square)    W=1080; H=1080 ;;
@@ -95,6 +98,9 @@ if [ -n "$HUE" ]; then
 fi
 [ -f "$STYLE_CONF" ] && . "$STYLE_CONF"                  # durable style guide overrides
 [ -n "$_ACCENT" ] && ACCENT="$_ACCENT"                   # then per-call env wins
+[ -n "$_CRIMSON" ] && CRIMSON="$_CRIMSON"
+[ -n "$_INK" ] && INK="$_INK"
+[ -n "$_PAPER" ] && PAPER="$_PAPER"
 [ -n "$_SERIF" ] && SERIF="$_SERIF"; [ -n "$_SANS" ] && SANS="$_SANS"; [ -n "$_SIT" ] && SIT="$_SIT"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 gap(){ echo \( -size 1x${1} xc:none \); }
