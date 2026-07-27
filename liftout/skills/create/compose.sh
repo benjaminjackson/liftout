@@ -103,12 +103,27 @@ gap(){ echo \( -size 1x${1} xc:none \); }
 MEAN=$(magick hero.jpg -colorspace Gray -format "%[fx:mean]" info:)
 DARKIMG=$(awk -v m="$MEAN" 'BEGIN{print (m<0.5)?1:0}')
 # pick text (TX) + accent (ACC) for a surface: dark surface → light text + gold; light → ink + crimson
-palette(){ if [ "$1" = 1 ]; then TX="$PAPER"; ACC="$ACCENT"; else TX="$INK"; ACC="$CRIMSON"; fi; }
+palette(){ SURFD="$1"; if [ "$1" = 1 ]; then TX="$PAPER"; ACC="$ACCENT"; else TX="$INK"; ACC="$CRIMSON"; fi; }
 # masthead = favicon chip + outlet name, always together, centered
+# A favicon is arbitrary art: some are opaque tiles carrying their own background, some
+# are bare transparent glyphs inked for a white page. Flatten the logo onto the surface
+# it will actually land on and measure the spread — near-flat means the mark dissolved
+# into the panel (a black glyph on a dark card), so it gets a plate in the contrasting
+# tone. Opaque tiles score high and stay bare, no halo.
+# ponytail: 0.08 is calibrated against real favicons — worst invisible case measured
+# 0.037, closest legitimate pass 0.089. If some outlet lands in that gap, compare
+# mark-vs-panel luminance directly instead of leaning on stddev.
 masthead(){ # $1 name-color  $2 out-file
   magick -background none -fill "$1" -font "$SANS" -pointsize 25 label:"$OUTLET" "$T/_o.png"
   if [ -f logo.png ]; then
-    magick logo.png -resize 40x40 "$T/_lg.png"
+    SURF=$([ "$SURFD" = 1 ] && echo "$INK" || echo "$PAPER")
+    SD=$(magick logo.png -resize 40x40 -background "$SURF" -alpha remove -colorspace Gray -format "%[fx:standard_deviation]" info:)
+    if [ "$(awk -v s="$SD" 'BEGIN{print (s<0.08)?1:0}')" = 1 ]; then
+      magick -size 40x40 xc:none -fill "$TX" -draw "roundrectangle 0,0,39,39,9,9" "$T/_pl.png"
+      magick "$T/_pl.png" \( logo.png -resize 30x30 \) -gravity center -composite "$T/_lg.png"
+    else
+      magick logo.png -resize 40x40 "$T/_lg.png"
+    fi
     magick -background none -gravity center "$T/_lg.png" \( -size 14x1 xc:none \) "$T/_o.png" +append "$2"
   else cp "$T/_o.png" "$2"; fi
 }

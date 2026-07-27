@@ -96,6 +96,21 @@ palette(){ if [ "$1" = 1 ]; then TX="$PAPER"; ACC="$ACCENT"; else TX="$INK"; ACC
   derived colors at the same precedence as fonts: derivation only fills in when neither
   is set.
 
+The favicon isn't part of this derivation — it's the outlet's own branding, fetched as-is
+(`SKILL.md`), so it can land on a surface it was never designed for (a black wordmark on
+a dark card). `masthead()` checks for that: flatten the logo onto the surface it's about
+to sit on and measure the grayscale spread.
+
+```bash
+SD=$(magick logo.png -resize 40x40 -background "$SURF" -alpha remove -colorspace Gray \
+  -format "%[fx:standard_deviation]" info:)
+# < 0.08: the mark dissolved into the surface — give it a plate in $TX (the contrasting tone)
+```
+
+An opaque tile (most favicons) carries its own background and always scores well above
+the threshold, so it renders bare. Only a transparent glyph that's about to vanish gets
+plated.
+
 ## Type
 
 No brand fonts ship with the skill. Type falls back to clean system faces (Georgia
