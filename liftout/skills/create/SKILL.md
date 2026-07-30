@@ -101,6 +101,9 @@ without a style guide, type falls back to clean system faces.
      The script also reads brightness to flip surface and text so they always contrast:
      a light image gets a dark surface with light text, a dark image the reverse. Set
      `ACCENT`/`CRIMSON`/`INK`/`PAPER` (or the style guide) to override with a fixed color.
+     If the user asks for a light or dark background directly, set
+     `FORCE_SURFACE=light` or `FORCE_SURFACE=dark` instead of guessing at colors —
+     it pins the card/mat to that surface regardless of the photo's own brightness.
    - The favicon (`logo.png`) always leads the outlet name in both styles — so download it.
    - `TITLE`, `BYLINE`, `DATE` are all optional — omit any and the layout closes up.
    - Wrap the quote in curly quotes `“ ”` yourself.
