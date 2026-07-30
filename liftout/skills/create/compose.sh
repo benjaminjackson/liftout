@@ -94,7 +94,7 @@ if [ -n "$HUE" ]; then
   INK=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{print s*0.7}')" 0.13)
   PAPER=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{print s*0.35}')" 0.95)
   ACCENT=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.62)
-  CRIMSON=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.38)
+  CRIMSON=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.28)
 fi
 [ -f "$STYLE_CONF" ] && . "$STYLE_CONF"                  # durable style guide overrides
 [ -n "$_ACCENT" ] && ACCENT="$_ACCENT"                   # then per-call env wins
@@ -102,6 +102,13 @@ fi
 [ -n "$_INK" ] && INK="$_INK"
 [ -n "$_PAPER" ] && PAPER="$_PAPER"
 [ -n "$_SERIF" ] && SERIF="$_SERIF"; [ -n "$_SANS" ] && SANS="$_SANS"; [ -n "$_SIT" ] && SIT="$_SIT"
+# CRIMSON prints as text (outlet name, kicker) on PAPER, so it has to clear a contrast
+# floor the same way masthead() does for the favicon: flatten both to gray, measure the
+# spread. Two flat swatches make stddev exactly half the luma gap, so 0.20 means a 0.40
+# gap. ponytail: calibrated against the derived accent across several hues (all pass)
+# and a deliberately close pair (fails) — revisit if a style-guide CRIMSON lands here.
+CSD=$(magick -size 2x1 xc:"$CRIMSON" xc:"$PAPER" +append -colorspace Gray -format "%[fx:standard_deviation]" info:)
+[ "$(awk -v s="$CSD" 'BEGIN{print (s<0.20)?1:0}')" = 1 ] && CRIMSON="$INK"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 gap(){ echo \( -size 1x${1} xc:none \); }
 
