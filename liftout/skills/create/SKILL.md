@@ -109,11 +109,15 @@ without a style guide, type falls back to clean system faces.
    (or `card.png` if only one style was requested), read them back. Check:
    - Quote is the loudest thing and fully on-frame (not clipped).
    - Every line legible: for `floating`, if a busy image bleeds through, raise the panel
-     opacity (`rgba(20,16,11,0.86)` → higher); for `matted`, check the quote fills the
+     opacity (`rgba(20,16,11,0.95)` → higher); for `matted`, check the quote fills the
      space between photo and byline without crowding.
    - Favicon crisp, byline present, colors contrast the image.
    Then edit `compose.sh` (panel opacity, box size, accent) and re-run until it looks
-   right. *Only then* show the user.
+   right.
+   - **Show every render.** Every time the card is rendered or re-rendered — the first
+     pass and each fix after it — show it to the user inline, not just a path or a
+     download link. Don't make several edits in a row and only show the final result;
+     each edit gets its own render and its own look, so the user sees what changed.
 
 ## Requirements
 - **ImageMagick 7** (`magick`) and **awk**.
