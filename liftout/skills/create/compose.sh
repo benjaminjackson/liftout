@@ -156,19 +156,17 @@ if [ "$S" = "matted" ]; then
   MSD="${FS:-$DARKIMG}"
   palette "$MSD"
   MAT=$([ "$MSD" = 1 ] && echo "$INK" || echo "$PAPER")
-  MARGIN=90; GAP_PHOTO=44; PAD_BOTTOM=70
+  MARGIN=90; GAP_PHOTO=44; PAD_BOTTOM=$MARGIN               # frame is 90px on all 4 sides
   PHOTO_W=$((W - 2*MARGIN))
-  PHOTO_TOP=$(mn $(( $(frac "$H" 0.10) > 72 ? $(frac "$H" 0.10) : 72 )) 9999)
-  # ponytail: matted wants vertical room — landscape (630 tall) comes out compact but valid
-  PHOTO_IN=$(mn $(frac "$H" 0.37) $((H - PHOTO_TOP - GAP_PHOTO - PAD_BOTTOM - 130)))
-  PHOTO_DISP=$((PHOTO_IN + 4))   # +4 for the 2px keyline top+bottom
-  MAST_TOP=$((PHOTO_TOP - 54))
+  # masthead and photo get independent positions off a shared anchor, not one derived
+  # from the other with a fixed offset — otherwise "add space between them" just pushes
+  # the whole block down and eats into the top margin instead of opening the gap.
+  ANCHOR=$((MARGIN + 54))
+  MAST_TOP=$((ANCHOR - 54))    # masthead stays anchored at the top margin
+  PHOTO_TOP=$((ANCHOR + 20))   # photo gets 20px more air below the masthead
 
-  magick -size ${W}x${H} xc:"$MAT" "$T/base.png"
-  magick hero.jpg -resize ${PHOTO_W}x${PHOTO_IN}^ -gravity center -extent ${PHOTO_W}x${PHOTO_IN} -bordercolor "$TX" -border 2 "$T/photo.png"
-  masthead "$ACC" "$T/out.png"
-
-  # metadata block first, so we know how much height the quote can claim
+  # metadata block measured before the photo, so its height can size the photo clamp
+  # instead of a magic constant — matted is tightest in landscape (630 tall)
   magick -size 84x6 xc:"$ACC" "$T/bar.png"
   META=$(( 24 + 6 )); METAPARTS=( $(gap 24) "$T/bar.png" )
   if [ -n "$TITLE" ]; then
@@ -180,6 +178,13 @@ if [ "$S" = "matted" ]; then
     magick -background none -fill "$TX" -font "$SIT" -pointsize 26 label:"$ATTR" "$T/at.png"
     META=$(( META + 12 + $(magick identify -format "%h" "$T/at.png") )); METAPARTS+=( $(gap 12) "$T/at.png" )
   fi
+
+  PHOTO_IN=$(mn $(frac "$H" 0.37) $((H - PHOTO_TOP - GAP_PHOTO - PAD_BOTTOM - META - 64)))
+  PHOTO_DISP=$((PHOTO_IN + 4))   # +4 for the 2px keyline top+bottom
+
+  magick -size ${W}x${H} xc:"$MAT" "$T/base.png"
+  magick hero.jpg -resize ${PHOTO_W}x${PHOTO_IN}^ -gravity center -extent ${PHOTO_W}x${PHOTO_IN} -bordercolor "$TX" -border 2 "$T/photo.png"
+  masthead "$ACC" "$T/out.png"
 
   # quote fills the gap between photo and metadata; caption auto-fits type to the box
   AVAIL=$(( H - PHOTO_TOP - PHOTO_DISP - GAP_PHOTO - PAD_BOTTOM ))
