@@ -125,6 +125,10 @@ without a style guide, type falls back to clean system faces.
 - The quote auto-fits its box via ImageMagick's `caption:` — a short quote comes out big,
   a long one shrinks to fit. In matted, the quote grows to fill the gap between the photo
   and the metadata.
-- Sites that block scraping (login wall / JS shell): ask the user for the
-  title/quote/author, but still grab `og:image` for the background.
+- Blocked sites: if the first curl/WebFetch of the article page comes back empty or 403,
+  stop — don't retry with different headers or tools. Sites behind DataDome or similar
+  (nytimes.com, for one) block the article HTML outright, so there's no `og:image` tag
+  to fall back on either. Ask the user for the image URL along with the title, quote and
+  author. Direct static asset URLs (e.g. `static01.nyt.com/images/…`) download fine even
+  when the article page itself doesn't, so a URL the user pastes will work.
 - Bad hero (404 or tiny): check `file hero.jpg`; fall back to `twitter:image` or ask.
