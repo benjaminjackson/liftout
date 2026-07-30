@@ -183,7 +183,7 @@ else
   # pops: light image → dark card + light text; dark image → light card + ink text.
   FSD=$([ "$DARKIMG" = 1 ] && echo 0 || echo 1)
   palette "$FSD"
-  PANEL=$([ "$FSD" = 1 ] && echo 'rgba(20,16,11,0.86)' || echo 'rgba(242,238,228,0.93)')
+  PANEL=$([ "$FSD" = 1 ] && echo 'rgba(20,16,11,0.95)' || echo 'rgba(242,238,228,0.97)')
   FLQW=$(mn 700 $((W - 360)))                    # quote box shrinks to fit narrow formats
   FLQH=$(mn 520 $(frac "$H" 0.42))               # and short ones
   magick hero.jpg -resize ${W}x${H}^ -gravity center -extent ${W}x${H} "$T/base.png"
