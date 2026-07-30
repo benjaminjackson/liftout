@@ -108,6 +108,12 @@ gap(){ echo \( -size 1x${1} xc:none \); }
 # is the hero image dark? (mean luminance < 0.5)
 MEAN=$(magick hero.jpg -colorspace Gray -format "%[fx:mean]" info:)
 DARKIMG=$(awk -v m="$MEAN" 'BEGIN{print (m<0.5)?1:0}')
+# force a fixed surface regardless of image brightness. Same 1=dark/0=light convention as
+# DARKIMG, applied per-branch below — matted's mat FOLLOWS the image tone so this substitutes
+# straight for DARKIMG, but floating's surface CONTRASTS the image, so this must replace FSD
+# *after* the inversion, not before it, or FORCE_SURFACE=dark ends up giving a light card.
+FORCE_SURFACE="${FORCE_SURFACE:-}"
+case "$FORCE_SURFACE" in dark) FS=1 ;; light) FS=0 ;; *) FS="" ;; esac
 # pick text (TX) + accent (ACC) for a surface: dark surface → light text + gold; light → ink + crimson
 palette(){ SURFD="$1"; if [ "$1" = 1 ]; then TX="$PAPER"; ACC="$ACCENT"; else TX="$INK"; ACC="$CRIMSON"; fi; }
 # masthead = favicon chip + outlet name, always together, centered
@@ -140,8 +146,9 @@ OUTFILE="card.png"; [ "${#STYLES[@]}" -gt 1 ] && OUTFILE="card-${S}.png"
 
 if [ "$S" = "matted" ]; then
   # mat tone follows the image tone so the framed print sits on a matching field
-  palette "$DARKIMG"
-  MAT=$([ "$DARKIMG" = 1 ] && echo "$INK" || echo "$PAPER")
+  MSD="${FS:-$DARKIMG}"
+  palette "$MSD"
+  MAT=$([ "$MSD" = 1 ] && echo "$INK" || echo "$PAPER")
   MARGIN=90; GAP_PHOTO=44; PAD_BOTTOM=70
   PHOTO_W=$((W - 2*MARGIN))
   PHOTO_TOP=$(mn $(( $(frac "$H" 0.10) > 72 ? $(frac "$H" 0.10) : 72 )) 9999)
@@ -181,7 +188,9 @@ if [ "$S" = "matted" ]; then
 else
   # floating: card over the full image. Surface is the OPPOSITE tone of the image so it
   # pops: light image → dark card + light text; dark image → light card + ink text.
-  FSD=$([ "$DARKIMG" = 1 ] && echo 0 || echo 1)
+  # FORCE_SURFACE names the surface directly, so it replaces FSD AFTER the inversion —
+  # inverting it again would hand back the opposite of what was asked.
+  FSD="${FS:-$([ "$DARKIMG" = 1 ] && echo 0 || echo 1)}"
   palette "$FSD"
   PANEL=$([ "$FSD" = 1 ] && echo 'rgba(20,16,11,0.95)' || echo 'rgba(242,238,228,0.97)')
   FLQW=$(mn 700 $((W - 360)))                    # quote box shrinks to fit narrow formats
