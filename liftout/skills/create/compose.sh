@@ -94,7 +94,7 @@ if [ -n "$HUE" ]; then
   INK=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{print s*0.7}')" 0.13)
   PAPER=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{print s*0.35}')" 0.95)
   ACCENT=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.62)
-  CRIMSON=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.38)
+  CRIMSON=$(hsl2hex "$HUE" "$(awk -v s="$CSAT" 'BEGIN{v=s*1.3; print (v>0.9)?0.9:v}')" 0.28)
 fi
 [ -f "$STYLE_CONF" ] && . "$STYLE_CONF"                  # durable style guide overrides
 [ -n "$_ACCENT" ] && ACCENT="$_ACCENT"                   # then per-call env wins
@@ -102,12 +102,25 @@ fi
 [ -n "$_INK" ] && INK="$_INK"
 [ -n "$_PAPER" ] && PAPER="$_PAPER"
 [ -n "$_SERIF" ] && SERIF="$_SERIF"; [ -n "$_SANS" ] && SANS="$_SANS"; [ -n "$_SIT" ] && SIT="$_SIT"
+# CRIMSON prints as text (outlet name, kicker) on PAPER, so it has to clear a contrast
+# floor the same way masthead() does for the favicon: flatten both to gray, measure the
+# spread. Two flat swatches make stddev exactly half the luma gap, so 0.20 means a 0.40
+# gap. ponytail: calibrated against the derived accent across several hues (all pass)
+# and a deliberately close pair (fails) — revisit if a style-guide CRIMSON lands here.
+CSD=$(magick -size 2x1 xc:"$CRIMSON" xc:"$PAPER" +append -colorspace Gray -format "%[fx:standard_deviation]" info:)
+[ "$(awk -v s="$CSD" 'BEGIN{print (s<0.20)?1:0}')" = 1 ] && CRIMSON="$INK"
 T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
 gap(){ echo \( -size 1x${1} xc:none \); }
 
 # is the hero image dark? (mean luminance < 0.5)
 MEAN=$(magick hero.jpg -colorspace Gray -format "%[fx:mean]" info:)
 DARKIMG=$(awk -v m="$MEAN" 'BEGIN{print (m<0.5)?1:0}')
+# force a fixed surface regardless of image brightness. Same 1=dark/0=light convention as
+# DARKIMG, applied per-branch below — matted's mat FOLLOWS the image tone so this substitutes
+# straight for DARKIMG, but floating's surface CONTRASTS the image, so this must replace FSD
+# *after* the inversion, not before it, or FORCE_SURFACE=dark ends up giving a light card.
+FORCE_SURFACE="${FORCE_SURFACE:-}"
+case "$FORCE_SURFACE" in dark) FS=1 ;; light) FS=0 ;; *) FS="" ;; esac
 # pick text (TX) + accent (ACC) for a surface: dark surface → light text + gold; light → ink + crimson
 palette(){ SURFD="$1"; if [ "$1" = 1 ]; then TX="$PAPER"; ACC="$ACCENT"; else TX="$INK"; ACC="$CRIMSON"; fi; }
 # masthead = favicon chip + outlet name, always together, centered
@@ -140,21 +153,20 @@ OUTFILE="card.png"; [ "${#STYLES[@]}" -gt 1 ] && OUTFILE="card-${S}.png"
 
 if [ "$S" = "matted" ]; then
   # mat tone follows the image tone so the framed print sits on a matching field
-  palette "$DARKIMG"
-  MAT=$([ "$DARKIMG" = 1 ] && echo "$INK" || echo "$PAPER")
-  MARGIN=90; GAP_PHOTO=44; PAD_BOTTOM=70
+  MSD="${FS:-$DARKIMG}"
+  palette "$MSD"
+  MAT=$([ "$MSD" = 1 ] && echo "$INK" || echo "$PAPER")
+  MARGIN=90; GAP_PHOTO=44; PAD_BOTTOM=$MARGIN               # frame is 90px on all 4 sides
   PHOTO_W=$((W - 2*MARGIN))
-  PHOTO_TOP=$(mn $(( $(frac "$H" 0.10) > 72 ? $(frac "$H" 0.10) : 72 )) 9999)
-  # ponytail: matted wants vertical room — landscape (630 tall) comes out compact but valid
-  PHOTO_IN=$(mn $(frac "$H" 0.37) $((H - PHOTO_TOP - GAP_PHOTO - PAD_BOTTOM - 130)))
-  PHOTO_DISP=$((PHOTO_IN + 4))   # +4 for the 2px keyline top+bottom
-  MAST_TOP=$((PHOTO_TOP - 54))
+  # masthead and photo get independent positions off a shared anchor, not one derived
+  # from the other with a fixed offset — otherwise "add space between them" just pushes
+  # the whole block down and eats into the top margin instead of opening the gap.
+  ANCHOR=$((MARGIN + 54))
+  MAST_TOP=$((ANCHOR - 54))    # masthead stays anchored at the top margin
+  PHOTO_TOP=$((ANCHOR + 20))   # photo gets 20px more air below the masthead
 
-  magick -size ${W}x${H} xc:"$MAT" "$T/base.png"
-  magick hero.jpg -resize ${PHOTO_W}x${PHOTO_IN}^ -gravity center -extent ${PHOTO_W}x${PHOTO_IN} -bordercolor "$TX" -border 2 "$T/photo.png"
-  masthead "$ACC" "$T/out.png"
-
-  # metadata block first, so we know how much height the quote can claim
+  # metadata block measured before the photo, so its height can size the photo clamp
+  # instead of a magic constant — matted is tightest in landscape (630 tall)
   magick -size 84x6 xc:"$ACC" "$T/bar.png"
   META=$(( 24 + 6 )); METAPARTS=( $(gap 24) "$T/bar.png" )
   if [ -n "$TITLE" ]; then
@@ -166,6 +178,13 @@ if [ "$S" = "matted" ]; then
     magick -background none -fill "$TX" -font "$SIT" -pointsize 26 label:"$ATTR" "$T/at.png"
     META=$(( META + 12 + $(magick identify -format "%h" "$T/at.png") )); METAPARTS+=( $(gap 12) "$T/at.png" )
   fi
+
+  PHOTO_IN=$(mn $(frac "$H" 0.37) $((H - PHOTO_TOP - GAP_PHOTO - PAD_BOTTOM - META - 64)))
+  PHOTO_DISP=$((PHOTO_IN + 4))   # +4 for the 2px keyline top+bottom
+
+  magick -size ${W}x${H} xc:"$MAT" "$T/base.png"
+  magick hero.jpg -resize ${PHOTO_W}x${PHOTO_IN}^ -gravity center -extent ${PHOTO_W}x${PHOTO_IN} -bordercolor "$TX" -border 2 "$T/photo.png"
+  masthead "$ACC" "$T/out.png"
 
   # quote fills the gap between photo and metadata; caption auto-fits type to the box
   AVAIL=$(( H - PHOTO_TOP - PHOTO_DISP - GAP_PHOTO - PAD_BOTTOM ))
@@ -181,9 +200,11 @@ if [ "$S" = "matted" ]; then
 else
   # floating: card over the full image. Surface is the OPPOSITE tone of the image so it
   # pops: light image → dark card + light text; dark image → light card + ink text.
-  FSD=$([ "$DARKIMG" = 1 ] && echo 0 || echo 1)
+  # FORCE_SURFACE names the surface directly, so it replaces FSD AFTER the inversion —
+  # inverting it again would hand back the opposite of what was asked.
+  FSD="${FS:-$([ "$DARKIMG" = 1 ] && echo 0 || echo 1)}"
   palette "$FSD"
-  PANEL=$([ "$FSD" = 1 ] && echo 'rgba(20,16,11,0.86)' || echo 'rgba(242,238,228,0.93)')
+  PANEL=$([ "$FSD" = 1 ] && echo 'rgba(20,16,11,0.95)' || echo 'rgba(242,238,228,0.97)')
   FLQW=$(mn 700 $((W - 360)))                    # quote box shrinks to fit narrow formats
   FLQH=$(mn 520 $(frac "$H" 0.42))               # and short ones
   magick hero.jpg -resize ${W}x${H}^ -gravity center -extent ${W}x${H} "$T/base.png"
