@@ -101,6 +101,9 @@ without a style guide, type falls back to clean system faces.
      The script also reads brightness to flip surface and text so they always contrast:
      a light image gets a dark surface with light text, a dark image the reverse. Set
      `ACCENT`/`CRIMSON`/`INK`/`PAPER` (or the style guide) to override with a fixed color.
+     If the user asks for a light or dark background directly, set
+     `FORCE_SURFACE=light` or `FORCE_SURFACE=dark` instead of guessing at colors —
+     it pins the card/mat to that surface regardless of the photo's own brightness.
    - The favicon (`logo.png`) always leads the outlet name in both styles — so download it.
    - `TITLE`, `BYLINE`, `DATE` are all optional — omit any and the layout closes up.
    - Wrap the quote in curly quotes `“ ”` yourself.
@@ -109,11 +112,15 @@ without a style guide, type falls back to clean system faces.
    (or `card.png` if only one style was requested), read them back. Check:
    - Quote is the loudest thing and fully on-frame (not clipped).
    - Every line legible: for `floating`, if a busy image bleeds through, raise the panel
-     opacity (`rgba(20,16,11,0.86)` → higher); for `matted`, check the quote fills the
+     opacity (`rgba(20,16,11,0.95)` → higher); for `matted`, check the quote fills the
      space between photo and byline without crowding.
    - Favicon crisp, byline present, colors contrast the image.
    Then edit `compose.sh` (panel opacity, box size, accent) and re-run until it looks
-   right. *Only then* show the user.
+   right.
+   - **Show every render.** Every time the card is rendered or re-rendered — the first
+     pass and each fix after it — show it to the user inline, not just a path or a
+     download link. Don't make several edits in a row and only show the final result;
+     each edit gets its own render and its own look, so the user sees what changed.
 
 ## Requirements
 - **ImageMagick 7** (`magick`) and **awk**.
@@ -125,6 +132,10 @@ without a style guide, type falls back to clean system faces.
 - The quote auto-fits its box via ImageMagick's `caption:` — a short quote comes out big,
   a long one shrinks to fit. In matted, the quote grows to fill the gap between the photo
   and the metadata.
-- Sites that block scraping (login wall / JS shell): ask the user for the
-  title/quote/author, but still grab `og:image` for the background.
+- Blocked sites: if the first curl/WebFetch of the article page comes back empty or 403,
+  stop — don't retry with different headers or tools. Sites behind DataDome or similar
+  (nytimes.com, for one) block the article HTML outright, so there's no `og:image` tag
+  to fall back on either. Ask the user for the image URL along with the title, quote and
+  author. Direct static asset URLs (e.g. `static01.nyt.com/images/…`) download fine even
+  when the article page itself doesn't, so a URL the user pastes will work.
 - Bad hero (404 or tiny): check `file hero.jpg`; fall back to `twitter:image` or ask.

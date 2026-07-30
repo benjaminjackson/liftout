@@ -95,6 +95,18 @@ palette(){ if [ "$1" = 1 ]; then TX="$PAPER"; ACC="$ACCENT"; else TX="$INK"; ACC
 - The style guide (`~/.config/liftout/style.conf`) and per-call env vars override the
   derived colors at the same precedence as fonts: derivation only fills in when neither
   is set.
+- `FORCE_SURFACE=light|dark` pins the surface directly, skipping the brightness check,
+  for when the user asks for a light or dark background outright rather than leaving it
+  to the photo. The sign is opposite in each style: matted's mat *follows* the image
+  tone, so the override substitutes for `DARKIMG` directly; floating's surface
+  *contrasts* the image, so the override replaces the already-inverted value instead —
+  applying it before the inversion would hand back the opposite of what was asked.
+
+`CRIMSON`'s lightness (0.28) sits well below `PAPER`'s (0.95) so it reads clearly as
+text — outlet name, kicker — printed on the pale surface. Any `CRIMSON` that reaches
+this point, derived or overridden, still has to clear a contrast floor before it's used:
+the same stddev idiom the favicon check below uses, flattening `CRIMSON` and `PAPER` to
+gray and measuring the spread, falling back to `INK` below 0.20.
 
 The favicon isn't part of this derivation — it's the outlet's own branding, fetched as-is
 (`SKILL.md`), so it can land on a surface it was never designed for (a black wordmark on
@@ -146,7 +158,7 @@ magick -background none -fill "$TX" -font "$SERIF" -size 700x520 -gravity center
 **Opaque card plus soft drop shadow,** so it separates from a busy image:
 
 ```bash
-magick -size ${PW}x${PH} xc:none -fill 'rgba(20,16,11,0.86)' \
+magick -size ${PW}x${PH} xc:none -fill 'rgba(20,16,11,0.95)' \
   -draw "roundrectangle 0,0,$((PW-1)),$((PH-1)),26,26" pn.png
 magick pn.png \( +clone -background black -shadow 70x24+0+12 \) +swap \
   -background none -layers merge +repage pns.png
